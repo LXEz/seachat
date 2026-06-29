@@ -55,6 +55,17 @@ const commonIndexes = [
   { code: "000852", name: "中证1000", quoteId: "1.000852", type: "Index", market: "指数" }
 ];
 
+const commonStocks = [
+  { code: "600519", name: "贵州茅台", quoteId: "1.600519", type: "AStock", market: "沪A" },
+  { code: "000858", name: "五粮液", quoteId: "0.000858", type: "AStock", market: "深A" },
+  { code: "601318", name: "中国平安", quoteId: "1.601318", type: "AStock", market: "沪A" },
+  { code: "600036", name: "招商银行", quoteId: "1.600036", type: "AStock", market: "沪A" },
+  { code: "300750", name: "宁德时代", quoteId: "0.300750", type: "AStock", market: "深A" },
+  { code: "002594", name: "比亚迪", quoteId: "0.002594", type: "AStock", market: "深A" },
+  { code: "600276", name: "恒瑞医药", quoteId: "1.600276", type: "AStock", market: "沪A" },
+  { code: "601899", name: "紫金矿业", quoteId: "1.601899", type: "AStock", market: "沪A" }
+];
+
 const commonSectors = [
   { code: "BK0896", name: "白酒", quoteId: "90.BK0896", type: "BK", market: "行业" },
   { code: "BK0475", name: "银行", quoteId: "90.BK0475", type: "BK", market: "行业" },
@@ -63,6 +74,8 @@ const commonSectors = [
   { code: "BK0427", name: "医药商业", quoteId: "90.BK0427", type: "BK", market: "行业" },
   { code: "BK0437", name: "房地产开发", quoteId: "90.BK0437", type: "BK", market: "行业" }
 ];
+
+const defaultSecurities = [...commonStocks, ...commonIndexes, ...commonSectors];
 
 const academySections = [
   {
@@ -182,6 +195,30 @@ function calculateMultiples(inputs) {
   };
 }
 
+function calculateValuationBands(inputs, dcf, multiples) {
+  const fairValue = (dcf.intrinsicValue * 0.55) + (multiples.blendedValue * 0.45);
+  const lowValue = fairValue * (1 - pct(inputs.marginOfSafety));
+  const highValue = fairValue * 1.18;
+  let state = "合理区间";
+
+  if (inputs.price <= lowValue) {
+    state = "低估区";
+  } else if (inputs.price >= highValue) {
+    state = "高估区";
+  }
+
+  return {
+    lowValue,
+    fairValue,
+    highValue,
+    state,
+    position: Math.max(
+      0,
+      Math.min(100, ((inputs.price - lowValue) / (highValue - lowValue)) * 100)
+    )
+  };
+}
+
 function inputValue(value) {
   return Number.isFinite(value) ? value : 0;
 }
@@ -238,14 +275,16 @@ function getSecurityCategory(item) {
 
 function SecuritySearch({ onSelect }) {
   const [query, setQuery] = useState("贵州茅台");
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(defaultSecurities);
   const [status, setStatus] = useState("idle");
   const [filter, setFilter] = useState("all");
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     const keyword = query.trim();
     if (keyword.length < 2) {
-      setItems([]);
+      setItems(defaultSecurities);
+      setStatus("idle");
       return;
     }
 
@@ -282,6 +321,7 @@ function SecuritySearch({ onSelect }) {
   const filteredItems = items.filter(
     (item) => filter === "all" || getSecurityCategory(item) === filter
   );
+  const visibleItems = filteredItems.slice(0, 16);
 
   return (
     <div className="searchBox">
@@ -300,24 +340,24 @@ function SecuritySearch({ onSelect }) {
       <label>
         <Search size={18} />
         <input
-          placeholder="搜索股票或指数"
+          placeholder="选择或搜索标的"
           value={query}
+          onFocus={() => setOpen(true)}
           onChange={(event) => setQuery(event.target.value)}
         />
       </label>
-      {query.trim().length >= 2 && (
+      {open && (
         <div className="searchResults">
-          {status === "loading" && <p>搜索中</p>}
+          {status === "loading" && query.trim().length >= 2 && <p>搜索中</p>}
           {status === "error" && <p>搜索失败</p>}
-          {status === "ready" &&
-            filteredItems.map((item) => (
+          {visibleItems.map((item) => (
               <button
                 key={item.quoteId}
                 type="button"
                 onClick={() => {
                   onSelect(item);
                   setQuery(`${item.name} ${item.code}`);
-                  setItems([]);
+                  setOpen(false);
                 }}
               >
                 <span>
@@ -327,7 +367,7 @@ function SecuritySearch({ onSelect }) {
                 <b>{item.market}</b>
               </button>
             ))}
-          {status === "ready" && filteredItems.length === 0 && <p>没有匹配结果</p>}
+          {visibleItems.length === 0 && <p>没有匹配结果</p>}
         </div>
       )}
     </div>
@@ -374,6 +414,36 @@ function Academy() {
   );
 }
 
+function ValuationBand({ bands, price }) {
+  return (
+    <section className="panel bandPanel">
+      <div className="panelHeader">
+        <h2>估值区间</h2>
+        <Gauge size={18} />
+      </div>
+      <div className="bandStatus">
+        <span>当前判断</span>
+        <strong>{bands.state}</strong>
+      </div>
+      <div className="bandTrack">
+        <div className="bandSegment undervalued">低估</div>
+        <div className="bandSegment fair">合理</div>
+        <div className="bandSegment overvalued">高估</div>
+        <i style={{ left: `${bands.position}%` }} />
+      </div>
+      <div className="bandValues">
+        <span>低估线 {yuan.format(bands.lowValue)}</span>
+        <span>中枢 {yuan.format(bands.fairValue)}</span>
+        <span>高估线 {yuan.format(bands.highValue)}</span>
+      </div>
+      <p>
+        当前价格 {yuan.format(price)}。区间由 DCF 内在价值和倍数估值混合得到，
+        再按安全边际切出低估线。
+      </p>
+    </section>
+  );
+}
+
 function App() {
   const [activePage, setActivePage] = useState("analysis");
   const [inputs, setInputs] = useState(initialInputs);
@@ -390,6 +460,10 @@ function App() {
 
   const dcf = useMemo(() => calculateDcf(inputs), [inputs]);
   const multiples = useMemo(() => calculateMultiples(inputs), [inputs]);
+  const valuationBands = useMemo(
+    () => calculateValuationBands(inputs, dcf, multiples),
+    [inputs, dcf, multiples]
+  );
   const scenarioResults = useMemo(
     () =>
       scenarios.map((scenario) => ({
@@ -506,6 +580,7 @@ function App() {
       {activePage === "analysis" && (
         <>
       <section className="categoryPanel">
+        <QuickPick title="常用股票" items={commonStocks} onSelect={handleSelectSecurity} />
         <QuickPick title="常用指数" items={commonIndexes} onSelect={handleSelectSecurity} />
         <QuickPick title="常用行业" items={commonSectors} onSelect={handleSelectSecurity} />
       </section>
@@ -704,6 +779,8 @@ function App() {
             </article>
           </div>
         </section>
+
+        <ValuationBand bands={valuationBands} price={inputs.price} />
 
         <section className="panel">
           <div className="panelHeader">

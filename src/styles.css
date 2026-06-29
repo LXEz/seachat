@@ -153,6 +153,8 @@ button {
   top: 92px;
   left: 0;
   right: 0;
+  max-height: 420px;
+  overflow: auto;
   display: grid;
   gap: 6px;
   padding: 8px;
@@ -290,7 +292,7 @@ button {
 
 .categoryPanel {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
   margin: 24px 0 0;
 }
@@ -559,6 +561,107 @@ button {
   white-space: nowrap;
 }
 
+.bandPanel {
+  display: grid;
+  gap: 14px;
+}
+
+.bandStatus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 7px;
+  background: #f5f4ed;
+}
+
+.bandStatus span {
+  color: #697266;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.bandStatus strong {
+  font-size: 1.4rem;
+}
+
+.bandTrack {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1.45fr 1fr;
+  min-height: 48px;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid #d6dbd0;
+}
+
+.bandSegment {
+  display: grid;
+  place-items: center;
+  color: #26313a;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.bandSegment.undervalued {
+  background: #dceee6;
+}
+
+.bandSegment.fair {
+  background: #f3ead2;
+}
+
+.bandSegment.overvalued {
+  background: #f0d6d2;
+}
+
+.bandTrack i {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 999px;
+  background: #18202a;
+  transform: translateX(-50%);
+}
+
+.bandTrack i::after {
+  content: "现价";
+  position: absolute;
+  top: -2px;
+  left: 8px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #18202a;
+  color: #fffefa;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.bandValues {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bandValues span {
+  padding: 8px;
+  border-radius: 6px;
+  background: #faf9f3;
+  color: #59635a;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.bandPanel p {
+  margin: 0;
+  color: #5f685b;
+  line-height: 1.55;
+  font-size: 0.88rem;
+}
+
 .academyGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -684,6 +787,10 @@ button {
 
   .quickPickList button {
     min-width: 112px;
+  }
+
+  .bandValues {
+    grid-template-columns: 1fr;
   }
 
   .quotePrice {
