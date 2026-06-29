@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Search,
   Scale,
+  Target,
   TrendingUp
 } from "lucide-react";
 import "./styles.css";
@@ -374,6 +375,57 @@ function SecuritySearch({ onSelect }) {
   );
 }
 
+function AssetRail({ onSelect }) {
+  const [filter, setFilter] = useState("all");
+  const [query, setQuery] = useState("");
+
+  const items = defaultSecurities.filter((item) => {
+    const categoryMatch = filter === "all" || getSecurityCategory(item) === filter;
+    const keyword = query.trim().toLowerCase();
+    const queryMatch =
+      !keyword ||
+      item.name.toLowerCase().includes(keyword) ||
+      item.code.toLowerCase().includes(keyword);
+    return categoryMatch && queryMatch;
+  });
+
+  return (
+    <section className="assetRail">
+      <div className="assetSearch">
+        <Search size={18} />
+        <input
+          value={query}
+          placeholder="筛选标的名称或代码"
+          onChange={(event) => setQuery(event.target.value)}
+        />
+      </div>
+      <div className="assetFilters">
+        {securityFilters.map((item) => (
+          <button
+            key={item.id}
+            className={filter === item.id ? "active" : ""}
+            type="button"
+            onClick={() => setFilter(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+      <div className="assetList">
+        {items.map((item) => (
+          <button key={item.quoteId} type="button" onClick={() => onSelect(item)}>
+            <span>
+              <strong>{item.name}</strong>
+              <small>{item.code}</small>
+            </span>
+            <b>{item.market}</b>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function QuickPick({ title, items, onSelect }) {
   return (
     <section className="quickPick">
@@ -441,6 +493,33 @@ function ValuationBand({ bands, price }) {
         再按安全边际切出低估线。
       </p>
     </section>
+  );
+}
+
+function AppNav({ activePage, onChange }) {
+  const items = [
+    { id: "analysis", label: "估值", icon: Calculator },
+    { id: "markets", label: "标的", icon: Target },
+    { id: "academy", label: "学堂", icon: BookOpen }
+  ];
+
+  return (
+    <nav className="appNav">
+      {items.map((item) => {
+        const Icon = item.icon;
+        return (
+          <button
+            key={item.id}
+            className={activePage === item.id ? "active" : ""}
+            type="button"
+            onClick={() => onChange(item.id)}
+          >
+            <Icon size={19} />
+            <span>{item.label}</span>
+          </button>
+        );
+      })}
+    </nav>
   );
 }
 
@@ -519,6 +598,7 @@ function App() {
 
   const handleSelectSecurity = (security) => {
     setSelectedSecurity(security);
+    setActivePage("analysis");
   };
 
   const handleNumberChange = (event) => {
@@ -535,59 +615,27 @@ function App() {
   const quoteTone = quote?.changePercent >= 0 ? "positive" : "negative";
 
   return (
-    <main className="appShell">
-      <header className="topBar">
+    <main className="appShell appFrame">
+      <header className="appHeader">
         <div>
-          <p>Eastmoney Live Valuation</p>
-          <h1>实时投资估值分析台</h1>
+          <p>Seachat Valuation</p>
+          <h1>投资估值</h1>
         </div>
-        <div className="marketTools">
-          <div className="pageTabs">
-            <button
-              className={activePage === "analysis" ? "active" : ""}
-              type="button"
-              onClick={() => setActivePage("analysis")}
-            >
-              分析台
-            </button>
-            <button
-              className={activePage === "academy" ? "active" : ""}
-              type="button"
-              onClick={() => setActivePage("academy")}
-            >
-              学堂
-            </button>
-          </div>
-          {activePage === "analysis" && (
-            <button
-              className="refreshButton"
-              type="button"
-              onClick={() => loadQuote()}
-              disabled={quoteStatus === "loading"}
-              title="刷新行情"
-            >
-              <RefreshCw size={18} />
-            </button>
-          )}
-        </div>
+        <button
+          className="refreshButton"
+          type="button"
+          onClick={() => loadQuote()}
+          disabled={quoteStatus === "loading"}
+          title="刷新行情"
+        >
+          <RefreshCw size={18} />
+        </button>
       </header>
 
-      {activePage === "academy" && <Academy />}
+      <AppNav activePage={activePage} onChange={setActivePage} />
 
       {activePage === "analysis" && (
-        <div className="terminalLayout">
-          <aside className="universePanel">
-            <div className="sideHeader">
-              <span>Universe</span>
-              <strong>标的宇宙</strong>
-            </div>
-            <SecuritySearch onSelect={handleSelectSecurity} />
-            <QuickPick title="常用股票" items={commonStocks} onSelect={handleSelectSecurity} />
-            <QuickPick title="常用指数" items={commonIndexes} onSelect={handleSelectSecurity} />
-            <QuickPick title="常用行业" items={commonSectors} onSelect={handleSelectSecurity} />
-          </aside>
-
-          <section className="mainDeck">
+        <section className="pageStack">
             <section className="quotePanel">
               <div>
                 <span>{selectedSecurity.market || selectedSecurity.type}</span>
@@ -610,6 +658,8 @@ function App() {
               </div>
               {quoteStatus === "error" && <p className="statusText">行情失败：{quoteError}</p>}
             </section>
+
+            <ValuationBand bands={valuationBands} price={inputs.price} />
 
             <section className="metricsGrid">
               <Metric
@@ -783,8 +833,6 @@ function App() {
           </div>
         </section>
 
-        <ValuationBand bands={valuationBands} price={inputs.price} />
-
         <section className="panel">
           <div className="panelHeader">
             <h2>DCF 拆解</h2>
@@ -869,8 +917,34 @@ function App() {
           </div>
         </section>
       </div>
-          </section>
-        </div>
+        </section>
+      )}
+
+      {activePage === "markets" && (
+        <section className="pageStack">
+          <div className="mobileHero">
+            <span>Market Universe</span>
+            <h2>选择要分析的标的</h2>
+            <p>先选股票、指数或行业，再进入估值页查看行情和估值区间。</p>
+          </div>
+          <AssetRail onSelect={handleSelectSecurity} />
+          <div className="marketCollections">
+            <QuickPick title="热门股票" items={commonStocks} onSelect={handleSelectSecurity} />
+            <QuickPick title="宽基指数" items={commonIndexes} onSelect={handleSelectSecurity} />
+            <QuickPick title="行业板块" items={commonSectors} onSelect={handleSelectSecurity} />
+          </div>
+        </section>
+      )}
+
+      {activePage === "academy" && (
+        <section className="pageStack">
+          <div className="mobileHero">
+            <span>Valuation Academy</span>
+            <h2>从模型到判断</h2>
+            <p>用短课程理解 DCF、相对估值、安全边际和行情数据边界。</p>
+          </div>
+          <Academy />
+        </section>
       )}
     </main>
   );

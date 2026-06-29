@@ -29,6 +29,7 @@ const QUOTE_FIELDS = [
 
 const QUOTE_ENDPOINTS = [
   "https://push2delay.eastmoney.com/api/qt/stock/get",
+  "https://push2his.eastmoney.com/api/qt/stock/get",
   "https://push2.eastmoney.com/api/qt/stock/get"
 ];
 
