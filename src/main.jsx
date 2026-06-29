@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   BarChart3,
+  BookOpen,
   Calculator,
   Gauge,
   LineChart,
@@ -36,6 +37,66 @@ const scenarios = [
   { name: "保守", growthDelta: -2, discountDelta: 1.5, terminalDelta: -0.5 },
   { name: "基准", growthDelta: 0, discountDelta: 0, terminalDelta: 0 },
   { name: "乐观", growthDelta: 2, discountDelta: -1, terminalDelta: 0.4 }
+];
+
+const securityFilters = [
+  { id: "all", label: "全部" },
+  { id: "stock", label: "股票" },
+  { id: "index", label: "指数" },
+  { id: "sector", label: "行业" }
+];
+
+const commonIndexes = [
+  { code: "000001", name: "上证指数", quoteId: "1.000001", type: "Index", market: "指数" },
+  { code: "399001", name: "深证成指", quoteId: "0.399001", type: "Index", market: "指数" },
+  { code: "399006", name: "创业板指", quoteId: "0.399006", type: "Index", market: "指数" },
+  { code: "000300", name: "沪深300", quoteId: "1.000300", type: "Index", market: "指数" },
+  { code: "000905", name: "中证500", quoteId: "1.000905", type: "Index", market: "指数" },
+  { code: "000852", name: "中证1000", quoteId: "1.000852", type: "Index", market: "指数" }
+];
+
+const commonSectors = [
+  { code: "BK0896", name: "白酒", quoteId: "90.BK0896", type: "BK", market: "行业" },
+  { code: "BK0475", name: "银行", quoteId: "90.BK0475", type: "BK", market: "行业" },
+  { code: "BK0473", name: "证券", quoteId: "90.BK0473", type: "BK", market: "行业" },
+  { code: "BK1036", name: "半导体", quoteId: "90.BK1036", type: "BK", market: "行业" },
+  { code: "BK0427", name: "医药商业", quoteId: "90.BK0427", type: "BK", market: "行业" },
+  { code: "BK0437", name: "房地产开发", quoteId: "90.BK0437", type: "BK", market: "行业" }
+];
+
+const academySections = [
+  {
+    title: "DCF 估值",
+    points: [
+      "DCF 的核心是把未来自由现金流折现到今天。增长率、折现率、永续增长率三个假设决定大部分结果。",
+      "折现率不是装饰变量。风险越高，折现率越高，今天愿意支付的价格越低。",
+      "永续增长率不能长期高于经济名义增速。这里做了保护：永续增长率必须低于折现率。"
+    ]
+  },
+  {
+    title: "相对估值",
+    points: [
+      "PE 适合盈利稳定的公司，PB 常用于银行、保险和周期资产，PS 常用于利润暂时失真的成长公司。",
+      "同一行业内部比较才有意义。拿银行 PB 和半导体 PE 混比，结论通常没有可操作性。",
+      "倍数估值是市场价格锚，不是内在价值本身。它适合做交叉验证。"
+    ]
+  },
+  {
+    title: "安全边际",
+    points: [
+      "安全边际不是悲观，是承认模型会错。输入假设越不确定，需要的折扣越大。",
+      "高质量公司可以给更低折扣，周期股、强监管行业、技术替代风险高的公司需要更高折扣。",
+      "买入价低于估值不等于一定赚钱，关键还要看基本面是否持续兑现。"
+    ]
+  },
+  {
+    title: "行情数据",
+    points: [
+      "本工具的行情来自东方财富接口，适合辅助分析，不作为交易系统的报价源。",
+      "指数和行业更适合观察市场温度；个股估值仍需要财报数据、现金流和竞争格局判断。",
+      "实时价格会自动进入模型，但收入、现金流、EPS 等财务假设需要你手动校准。"
+    ]
+  }
 ];
 
 const yuan = new Intl.NumberFormat("zh-CN", {
@@ -165,10 +226,21 @@ function Metric({ icon, label, value, tone }) {
   );
 }
 
+function getSecurityCategory(item) {
+  if (item.type === "Index" || item.market === "指数") {
+    return "index";
+  }
+  if (item.type === "BK" || item.market === "板块" || item.market === "行业") {
+    return "sector";
+  }
+  return "stock";
+}
+
 function SecuritySearch({ onSelect }) {
   const [query, setQuery] = useState("贵州茅台");
   const [items, setItems] = useState([]);
   const [status, setStatus] = useState("idle");
+  const [filter, setFilter] = useState("all");
 
   useEffect(() => {
     const keyword = query.trim();
@@ -207,8 +279,24 @@ function SecuritySearch({ onSelect }) {
     };
   }, [query]);
 
+  const filteredItems = items.filter(
+    (item) => filter === "all" || getSecurityCategory(item) === filter
+  );
+
   return (
     <div className="searchBox">
+      <div className="filterTabs">
+        {securityFilters.map((item) => (
+          <button
+            key={item.id}
+            className={filter === item.id ? "active" : ""}
+            type="button"
+            onClick={() => setFilter(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
       <label>
         <Search size={18} />
         <input
@@ -222,7 +310,7 @@ function SecuritySearch({ onSelect }) {
           {status === "loading" && <p>搜索中</p>}
           {status === "error" && <p>搜索失败</p>}
           {status === "ready" &&
-            items.map((item) => (
+            filteredItems.map((item) => (
               <button
                 key={item.quoteId}
                 type="button"
@@ -239,14 +327,55 @@ function SecuritySearch({ onSelect }) {
                 <b>{item.market}</b>
               </button>
             ))}
-          {status === "ready" && items.length === 0 && <p>没有匹配结果</p>}
+          {status === "ready" && filteredItems.length === 0 && <p>没有匹配结果</p>}
         </div>
       )}
     </div>
   );
 }
 
+function QuickPick({ title, items, onSelect }) {
+  return (
+    <section className="quickPick">
+      <div className="quickPickHeader">
+        <span>{title}</span>
+      </div>
+      <div className="quickPickList">
+        {items.map((item) => (
+          <button key={item.quoteId} type="button" onClick={() => onSelect(item)}>
+            <strong>{item.name}</strong>
+            <small>{item.code}</small>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Academy() {
+  return (
+    <section className="academyGrid">
+      <div className="academyIntro">
+        <BookOpen size={22} />
+        <div>
+          <p>Valuation Academy</p>
+          <h2>估值学堂</h2>
+        </div>
+      </div>
+      {academySections.map((section) => (
+        <article key={section.title} className="academyCard">
+          <h3>{section.title}</h3>
+          {section.points.map((point) => (
+            <p key={point}>{point}</p>
+          ))}
+        </article>
+      ))}
+    </section>
+  );
+}
+
 function App() {
+  const [activePage, setActivePage] = useState("analysis");
   const [inputs, setInputs] = useState(initialInputs);
   const [selectedSecurity, setSelectedSecurity] = useState({
     code: "600519",
@@ -328,6 +457,7 @@ function App() {
 
   const maxCashFlow = Math.max(...dcf.yearlyCashFlows.map((row) => row.cashFlow));
   const isIndex = selectedSecurity.type === "Index" || selectedSecurity.market === "指数";
+  const isSector = selectedSecurity.type === "BK" || selectedSecurity.market === "行业";
   const quoteTone = quote?.changePercent >= 0 ? "positive" : "negative";
 
   return (
@@ -338,18 +468,47 @@ function App() {
           <h1>实时投资估值分析台</h1>
         </div>
         <div className="marketTools">
-          <SecuritySearch onSelect={handleSelectSecurity} />
-          <button
-            className="refreshButton"
-            type="button"
-            onClick={() => loadQuote()}
-            disabled={quoteStatus === "loading"}
-            title="刷新行情"
-          >
-            <RefreshCw size={18} />
-          </button>
+          <div className="pageTabs">
+            <button
+              className={activePage === "analysis" ? "active" : ""}
+              type="button"
+              onClick={() => setActivePage("analysis")}
+            >
+              分析台
+            </button>
+            <button
+              className={activePage === "academy" ? "active" : ""}
+              type="button"
+              onClick={() => setActivePage("academy")}
+            >
+              学堂
+            </button>
+          </div>
+          {activePage === "analysis" && (
+            <>
+              <SecuritySearch onSelect={handleSelectSecurity} />
+              <button
+                className="refreshButton"
+                type="button"
+                onClick={() => loadQuote()}
+                disabled={quoteStatus === "loading"}
+                title="刷新行情"
+              >
+                <RefreshCw size={18} />
+              </button>
+            </>
+          )}
         </div>
       </header>
+
+      {activePage === "academy" && <Academy />}
+
+      {activePage === "analysis" && (
+        <>
+      <section className="categoryPanel">
+        <QuickPick title="常用指数" items={commonIndexes} onSelect={handleSelectSecurity} />
+        <QuickPick title="常用行业" items={commonSectors} onSelect={handleSelectSecurity} />
+      </section>
 
       <section className="quotePanel">
         <div>
@@ -389,13 +548,13 @@ function App() {
         />
         <Metric
           icon={Scale}
-          label={isIndex ? "指数点位" : "实时 PE"}
-          value={isIndex ? number.format(inputs.price) : formatRatio(quote?.pe)}
+          label={isIndex || isSector ? "当前点位" : "实时 PE"}
+          value={isIndex || isSector ? number.format(inputs.price) : formatRatio(quote?.pe)}
         />
         <Metric
           icon={Gauge}
-          label={isIndex ? "今日振幅" : "实时 PB"}
-          value={isIndex ? formatPercent(quote?.amplitude) : formatRatio(quote?.pb)}
+          label={isIndex || isSector ? "今日振幅" : "实时 PB"}
+          value={isIndex || isSector ? formatPercent(quote?.amplitude) : formatRatio(quote?.pb)}
         />
       </section>
 
@@ -630,6 +789,8 @@ function App() {
           </div>
         </section>
       </div>
+        </>
+      )}
     </main>
   );
 }

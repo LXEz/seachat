@@ -120,7 +120,7 @@ export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const secid = url.searchParams.get("secid")?.trim();
 
-  if (!secid || !/^\d\.[A-Za-z0-9]+$/.test(secid)) {
+  if (!secid || !/^\d{1,3}\.[A-Za-z0-9]+$/.test(secid)) {
     return json({ error: "Missing or invalid secid" }, { status: 400 });
   }
 

@@ -82,7 +82,7 @@ button {
 
 .marketTools {
   display: grid;
-  grid-template-columns: minmax(280px, 420px) 44px;
+  grid-template-columns: auto minmax(280px, 420px) 44px;
   gap: 10px;
   align-items: start;
 }
@@ -90,6 +90,39 @@ button {
 .searchBox {
   position: relative;
   z-index: 3;
+}
+
+.pageTabs,
+.filterTabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid #cbd0c7;
+  border-radius: 6px;
+  background: #fffefa;
+}
+
+.pageTabs button,
+.filterTabs button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #5f685b;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pageTabs button.active,
+.filterTabs button.active {
+  background: #26313a;
+  color: #fffefa;
+}
+
+.filterTabs {
+  margin-bottom: 8px;
+  overflow-x: auto;
 }
 
 .searchBox label {
@@ -117,7 +150,7 @@ button {
 
 .searchResults {
   position: absolute;
-  top: 50px;
+  top: 92px;
   left: 0;
   right: 0;
   display: grid;
@@ -253,6 +286,54 @@ button {
   grid-column: 1 / -1;
   margin: 0;
   color: #b42318;
+}
+
+.categoryPanel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0 0;
+}
+
+.quickPick {
+  border: 1px solid #d6dbd0;
+  border-radius: 8px;
+  background: #fffefa;
+  padding: 14px;
+}
+
+.quickPickHeader {
+  margin-bottom: 10px;
+  color: #5f685b;
+  font-size: 0.86rem;
+  font-weight: 900;
+}
+
+.quickPickList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quickPickList button {
+  min-height: 42px;
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid #e1e5dd;
+  border-radius: 6px;
+  background: #faf9f3;
+  color: #18202a;
+  text-align: left;
+}
+
+.quickPickList button:hover {
+  border-color: #9aa58f;
+}
+
+.quickPickList small {
+  color: #737d70;
+  font-size: 0.76rem;
 }
 
 .metricsGrid {
@@ -478,6 +559,53 @@ button {
   white-space: nowrap;
 }
 
+.academyGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.academyIntro,
+.academyCard {
+  border: 1px solid #d6dbd0;
+  border-radius: 8px;
+  background: #fffefa;
+  padding: 20px;
+}
+
+.academyIntro {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.academyIntro p {
+  margin: 0 0 4px;
+  color: #66705f;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.academyIntro h2,
+.academyCard h3 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+.academyCard {
+  display: grid;
+  gap: 12px;
+}
+
+.academyCard p {
+  margin: 0;
+  color: #4f5a51;
+  line-height: 1.65;
+}
+
 @media (max-width: 1000px) {
   .metricsGrid,
   .workspaceGrid {
@@ -488,8 +616,18 @@ button {
     grid-template-columns: 1fr 1fr;
   }
 
+  .marketTools {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
   .quoteStats {
     grid-column: 1 / -1;
+  }
+
+  .categoryPanel,
+  .academyGrid {
+    grid-template-columns: 1fr;
   }
 
   .assumptions {
@@ -519,6 +657,33 @@ button {
   .valuationTable,
   .comparisonGrid {
     grid-template-columns: 1fr;
+  }
+
+  .pageTabs {
+    width: 100%;
+  }
+
+  .pageTabs button {
+    flex: 1;
+  }
+
+  .searchResults {
+    position: fixed;
+    top: 156px;
+    left: 18px;
+    right: 18px;
+    max-height: 52vh;
+    overflow: auto;
+  }
+
+  .quickPickList {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .quickPickList button {
+    min-width: 112px;
   }
 
   .quotePrice {
