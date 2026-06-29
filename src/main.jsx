@@ -1,5 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import * as echarts from "echarts/core";
+import { GridComponent, TooltipComponent, VisualMapComponent } from "echarts/components";
+import { LineChart as ELineChart } from "echarts/charts";
+import { CanvasRenderer } from "echarts/renderers";
 import {
   BarChart3,
   BookOpen,
@@ -13,6 +17,8 @@ import {
   TrendingUp
 } from "lucide-react";
 import "./styles.css";
+
+echarts.use([GridComponent, TooltipComponent, VisualMapComponent, ELineChart, CanvasRenderer]);
 
 const initialInputs = {
   ticker: "600519",
@@ -44,6 +50,12 @@ const securityFilters = [
   { id: "stock", label: "股票" },
   { id: "index", label: "指数" },
   { id: "sector", label: "行业" }
+];
+
+const valuationMetrics = [
+  { id: "pe", label: "PE市盈率", quoteKey: "pe" },
+  { id: "pb", label: "PB市净率", quoteKey: "pb" },
+  { id: "ps", label: "PS市销率", quoteKey: "ps" }
 ];
 
 const academySections = [
@@ -400,6 +412,166 @@ function ValuationBand({ bands, price }) {
   );
 }
 
+function MarketValuationChart({ selectedSecurity, quote }) {
+  const chartRef = useRef(null);
+  const chartInstance = useRef(null);
+  const [metric, setMetric] = useState("pe");
+  const [history, setHistory] = useState(null);
+  const [status, setStatus] = useState("idle");
+
+  const currentMetric = valuationMetrics.find((item) => item.id === metric);
+  const isStock = selectedSecurity.type === "AStock" && /^\d{6}$/.test(selectedSecurity.code);
+
+  useEffect(() => {
+    if (!isStock) {
+      setHistory(null);
+      setStatus("unsupported");
+      return;
+    }
+
+    const controller = new AbortController();
+    setStatus("loading");
+
+    fetch(
+      `/api/valuation-history?code=${encodeURIComponent(selectedSecurity.code)}&metric=${metric}`,
+      { signal: controller.signal }
+    )
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("valuation history failed");
+        }
+        return response.json();
+      })
+      .then((payload) => {
+        setHistory(payload);
+        setStatus(payload.supported ? "ready" : "unsupported");
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") {
+          setStatus("error");
+        }
+      });
+
+    return () => controller.abort();
+  }, [isStock, metric, selectedSecurity.code]);
+
+  useEffect(() => {
+    if (!chartRef.current || status !== "ready" || !history?.series?.length) {
+      return undefined;
+    }
+
+    chartInstance.current = chartInstance.current || echarts.init(chartRef.current);
+    const dates = history.series.map((item) => item.date);
+    const values = history.series.map((item) => item.value);
+
+    chartInstance.current.setOption({
+      grid: { left: 38, right: 16, top: 18, bottom: 34 },
+      tooltip: {
+        trigger: "axis",
+        borderWidth: 0,
+        backgroundColor: "rgba(15, 23, 42, 0.92)",
+        textStyle: { color: "#fff" },
+        valueFormatter: (value) => Number(value).toFixed(2)
+      },
+      xAxis: {
+        type: "category",
+        data: dates,
+        boundaryGap: false,
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { color: "#94a3b8", hideOverlap: true }
+      },
+      yAxis: {
+        type: "value",
+        min: Math.max(0, Math.floor(history.min * 0.9)),
+        max: Math.ceil(history.max * 1.08),
+        splitLine: { lineStyle: { color: "#e2e8f0" } },
+        axisLabel: { color: "#94a3b8" }
+      },
+      visualMap: {
+        show: false,
+        dimension: 1,
+        pieces: [
+          { lte: history.lowLine, color: "#16a34a" },
+          { gt: history.lowLine, lte: history.highLine, color: "#f59e0b" },
+          { gt: history.highLine, color: "#ef4444" }
+        ]
+      },
+      series: [
+        {
+          type: "line",
+          data: values,
+          smooth: true,
+          symbol: "none",
+          lineStyle: { width: 3 },
+          areaStyle: { opacity: 0.08 },
+          markArea: {
+            silent: true,
+            itemStyle: { opacity: 0.14 },
+            data: [
+              [
+                { yAxis: history.min, itemStyle: { color: "#22c55e" } },
+                { yAxis: history.lowLine }
+              ],
+              [
+                { yAxis: history.lowLine, itemStyle: { color: "#facc15" } },
+                { yAxis: history.highLine }
+              ],
+              [
+                { yAxis: history.highLine, itemStyle: { color: "#ef4444" } },
+                { yAxis: history.max }
+              ]
+            ]
+          }
+        }
+      ]
+    });
+
+    const resize = () => chartInstance.current?.resize();
+    window.addEventListener("resize", resize);
+    return () => window.removeEventListener("resize", resize);
+  }, [history, status]);
+
+  const currentValue = history?.current ?? quote?.[currentMetric?.quoteKey];
+
+  return (
+    <section className="panel marketValuation">
+      <div className="panelHeader">
+        <div>
+          <h2>市场估值</h2>
+          <span>历史分位来自东方财富历史估值数据</span>
+        </div>
+        <LineChart size={18} />
+      </div>
+      <div className="valuationTabs">
+        {valuationMetrics.map((item) => (
+          <button
+            key={item.id}
+            className={metric === item.id ? "active" : ""}
+            type="button"
+            onClick={() => setMetric(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="valuationSummary">
+        <span>当前估值：{status === "ready" ? history.state : "暂无分位"}</span>
+        <strong>{currentMetric?.label.slice(0, 2)}：{formatRatio(currentValue, "")}</strong>
+        <b>百分位：{status === "ready" ? `${number.format(history.percentile)}%` : "-"}</b>
+      </div>
+
+      {status === "ready" && <div ref={chartRef} className="valuationChart" />}
+      {status === "loading" && <p className="chartState">正在加载历史估值</p>}
+      {status === "unsupported" && (
+        <p className="chartState">当前标的暂无可验证的历史估值分位，仅展示实时 PE/PB/PS。</p>
+      )}
+      {status === "error" && <p className="chartState">历史估值加载失败。</p>}
+    </section>
+  );
+}
+
 function AppNav({ activePage, onChange }) {
   const items = [
     { id: "analysis", label: "估值", icon: Calculator },
@@ -573,6 +745,7 @@ function App() {
             </section>
 
             <ValuationBand bands={valuationBands} price={inputs.price} />
+            <MarketValuationChart selectedSecurity={selectedSecurity} quote={quote} />
 
             <section className="metricsGrid">
               <Metric

@@ -478,6 +478,89 @@ button {
   font-size: 0.86rem;
 }
 
+.marketValuation {
+  display: grid;
+  gap: 14px;
+}
+
+.marketValuation .panelHeader {
+  margin-bottom: 0;
+}
+
+.marketValuation .panelHeader span {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.valuationTabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding: 4px;
+  border-radius: 18px;
+  background: #f1f5f9;
+}
+
+.valuationTabs button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: #475569;
+  font-weight: 900;
+}
+
+.valuationTabs button.active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.valuationSummary {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  color: #475569;
+  font-weight: 900;
+}
+
+.valuationSummary span::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: #2563eb;
+}
+
+.valuationSummary strong,
+.valuationSummary b {
+  color: #0f172a;
+  font-size: 1.05rem;
+}
+
+.valuationChart {
+  width: 100%;
+  height: 280px;
+}
+
+.chartState {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  border-radius: 18px;
+  background: #f8fafc;
+  color: #64748b;
+  text-align: center;
+  font-weight: 800;
+  line-height: 1.5;
+}
+
 .cashFlowChart,
 .scenarioList {
   display: grid;
@@ -767,6 +850,7 @@ button {
 
   .quotePanel,
   .bandPanel,
+  .marketValuation,
   .academyIntro,
   .assetRail {
     grid-column: 1 / -1;
@@ -831,6 +915,7 @@ button {
 
   .quotePanel,
   .bandPanel,
+  .marketValuation,
   .assetRail,
   .academyIntro {
     grid-column: 1 / -1;
