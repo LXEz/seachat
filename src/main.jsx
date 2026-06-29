@@ -559,18 +559,15 @@ function App() {
             </button>
           </div>
           {activePage === "analysis" && (
-            <>
-              <SecuritySearch onSelect={handleSelectSecurity} />
-              <button
-                className="refreshButton"
-                type="button"
-                onClick={() => loadQuote()}
-                disabled={quoteStatus === "loading"}
-                title="刷新行情"
-              >
-                <RefreshCw size={18} />
-              </button>
-            </>
+            <button
+              className="refreshButton"
+              type="button"
+              onClick={() => loadQuote()}
+              disabled={quoteStatus === "loading"}
+              title="刷新行情"
+            >
+              <RefreshCw size={18} />
+            </button>
           )}
         </div>
       </header>
@@ -578,60 +575,66 @@ function App() {
       {activePage === "academy" && <Academy />}
 
       {activePage === "analysis" && (
-        <>
-      <section className="categoryPanel">
-        <QuickPick title="常用股票" items={commonStocks} onSelect={handleSelectSecurity} />
-        <QuickPick title="常用指数" items={commonIndexes} onSelect={handleSelectSecurity} />
-        <QuickPick title="常用行业" items={commonSectors} onSelect={handleSelectSecurity} />
-      </section>
+        <div className="terminalLayout">
+          <aside className="universePanel">
+            <div className="sideHeader">
+              <span>Universe</span>
+              <strong>标的宇宙</strong>
+            </div>
+            <SecuritySearch onSelect={handleSelectSecurity} />
+            <QuickPick title="常用股票" items={commonStocks} onSelect={handleSelectSecurity} />
+            <QuickPick title="常用指数" items={commonIndexes} onSelect={handleSelectSecurity} />
+            <QuickPick title="常用行业" items={commonSectors} onSelect={handleSelectSecurity} />
+          </aside>
 
-      <section className="quotePanel">
-        <div>
-          <span>{selectedSecurity.market || selectedSecurity.type}</span>
-          <h2>
-            {inputs.company}
-            <small>{inputs.ticker}</small>
-          </h2>
-        </div>
-        <div className="quotePrice">
-          <strong>{yuan.format(inputs.price)}</strong>
-          <b className={quoteTone}>{formatPercent(quote?.changePercent)}</b>
-        </div>
-        <div className="quoteStats">
-          <span>涨跌额 {quote?.change ? yuan.format(quote.change) : "-"}</span>
-          <span>开盘 {quote?.open ? yuan.format(quote.open) : "-"}</span>
-          <span>最高 {quote?.high ? yuan.format(quote.high) : "-"}</span>
-          <span>最低 {quote?.low ? yuan.format(quote.low) : "-"}</span>
-          <span>成交额 {quote?.turnover ? compactYuan.format(quote.turnover) : "-"}</span>
-          <span>总市值 {quote?.marketCap ? compactYuan.format(quote.marketCap) : "-"}</span>
-        </div>
-        {quoteStatus === "error" && <p className="statusText">行情失败：{quoteError}</p>}
-      </section>
+          <section className="mainDeck">
+            <section className="quotePanel">
+              <div>
+                <span>{selectedSecurity.market || selectedSecurity.type}</span>
+                <h2>
+                  {inputs.company}
+                  <small>{inputs.ticker}</small>
+                </h2>
+              </div>
+              <div className="quotePrice">
+                <strong>{yuan.format(inputs.price)}</strong>
+                <b className={quoteTone}>{formatPercent(quote?.changePercent)}</b>
+              </div>
+              <div className="quoteStats">
+                <span>涨跌额 {quote?.change ? yuan.format(quote.change) : "-"}</span>
+                <span>开盘 {quote?.open ? yuan.format(quote.open) : "-"}</span>
+                <span>最高 {quote?.high ? yuan.format(quote.high) : "-"}</span>
+                <span>最低 {quote?.low ? yuan.format(quote.low) : "-"}</span>
+                <span>成交额 {quote?.turnover ? compactYuan.format(quote.turnover) : "-"}</span>
+                <span>总市值 {quote?.marketCap ? compactYuan.format(quote.marketCap) : "-"}</span>
+              </div>
+              {quoteStatus === "error" && <p className="statusText">行情失败：{quoteError}</p>}
+            </section>
 
-      <section className="metricsGrid">
-        <Metric
-          icon={Calculator}
-          label="DCF 内在价值"
-          value={yuan.format(dcf.intrinsicValue)}
-          tone={dcf.upside >= 0 ? "positive" : "negative"}
-        />
-        <Metric
-          icon={TrendingUp}
-          label="DCF 潜在空间"
-          value={`${number.format(dcf.upside)}%`}
-          tone={dcf.upside >= 0 ? "positive" : "negative"}
-        />
-        <Metric
-          icon={Scale}
-          label={isIndex || isSector ? "当前点位" : "实时 PE"}
-          value={isIndex || isSector ? number.format(inputs.price) : formatRatio(quote?.pe)}
-        />
-        <Metric
-          icon={Gauge}
-          label={isIndex || isSector ? "今日振幅" : "实时 PB"}
-          value={isIndex || isSector ? formatPercent(quote?.amplitude) : formatRatio(quote?.pb)}
-        />
-      </section>
+            <section className="metricsGrid">
+              <Metric
+                icon={Calculator}
+                label="DCF 内在价值"
+                value={yuan.format(dcf.intrinsicValue)}
+                tone={dcf.upside >= 0 ? "positive" : "negative"}
+              />
+              <Metric
+                icon={TrendingUp}
+                label="DCF 潜在空间"
+                value={`${number.format(dcf.upside)}%`}
+                tone={dcf.upside >= 0 ? "positive" : "negative"}
+              />
+              <Metric
+                icon={Scale}
+                label={isIndex || isSector ? "当前点位" : "实时 PE"}
+                value={isIndex || isSector ? number.format(inputs.price) : formatRatio(quote?.pe)}
+              />
+              <Metric
+                icon={Gauge}
+                label={isIndex || isSector ? "今日振幅" : "实时 PB"}
+                value={isIndex || isSector ? formatPercent(quote?.amplitude) : formatRatio(quote?.pb)}
+              />
+            </section>
 
       <div className="workspaceGrid">
         <section className="panel assumptions">
@@ -866,7 +869,8 @@ function App() {
           </div>
         </section>
       </div>
-        </>
+          </section>
+        </div>
       )}
     </main>
   );
