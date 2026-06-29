@@ -1,0 +1,335 @@
+:root {
+  color: #18202a;
+  background: #f3f5f0;
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.appShell {
+  width: min(1440px, 100%);
+  margin: 0 auto;
+  padding: 28px;
+}
+
+.topBar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #d5d9d1;
+}
+
+.topBar p {
+  margin: 0 0 6px;
+  color: #66705f;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.topBar h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 4rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.identity {
+  display: grid;
+  grid-template-columns: 120px minmax(180px, 260px);
+  gap: 10px;
+}
+
+.identity input,
+.fieldControl input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #cbd0c7;
+  background: #fffefa;
+  color: #18202a;
+  border-radius: 6px;
+  outline: none;
+}
+
+.identity input {
+  height: 42px;
+  padding: 0 12px;
+  font-weight: 800;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 24px 0;
+}
+
+.metric {
+  min-height: 122px;
+  padding: 18px;
+  border: 1px solid #d6dbd0;
+  border-radius: 8px;
+  background: #fffefa;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.metric div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #687267;
+  font-weight: 700;
+}
+
+.metric strong {
+  font-size: clamp(1.45rem, 2vw, 2.35rem);
+  letter-spacing: 0;
+}
+
+.metric.positive strong {
+  color: #13795b;
+}
+
+.metric.negative strong {
+  color: #b42318;
+}
+
+.workspaceGrid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.92fr) minmax(360px, 1.08fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.panel {
+  border: 1px solid #d6dbd0;
+  border-radius: 8px;
+  background: #fffefa;
+  padding: 18px;
+}
+
+.assumptions {
+  grid-row: span 2;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.panelHeader h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.panelHeader svg {
+  color: #62705f;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  color: #5f685b;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.fieldControl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.fieldControl input {
+  height: 40px;
+  padding: 0 10px;
+}
+
+.fieldControl strong {
+  min-width: 42px;
+  color: #86907f;
+  font-size: 0.78rem;
+}
+
+.valuationTable {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.valuationTable div,
+.comparisonGrid article,
+.scenarioList article {
+  border: 1px solid #e1e5dd;
+  border-radius: 7px;
+  padding: 14px;
+  background: #faf9f3;
+}
+
+.valuationTable span,
+.comparisonGrid span,
+.scenarioList span {
+  color: #697266;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.valuationTable strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 1.2rem;
+}
+
+.cashFlowChart {
+  display: grid;
+  gap: 9px;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 32px minmax(100px, 1fr) 112px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: #66705f;
+}
+
+.barRow div {
+  height: 12px;
+  border-radius: 999px;
+  background: #e9ece5;
+  overflow: hidden;
+}
+
+.barRow i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #157f63, #d1a23f);
+}
+
+.barRow strong {
+  color: #27313a;
+  text-align: right;
+  font-size: 0.78rem;
+}
+
+.comparisonGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.comparisonGrid article {
+  display: grid;
+  gap: 8px;
+}
+
+.comparisonGrid strong {
+  font-size: 1.35rem;
+}
+
+.comparisonGrid small {
+  color: #7b8578;
+  line-height: 1.4;
+}
+
+.scenarioList {
+  display: grid;
+  gap: 10px;
+}
+
+.scenarioList article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.scenarioList div {
+  display: grid;
+  gap: 4px;
+}
+
+.scenarioList b {
+  font-size: 1.2rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+  .metricsGrid,
+  .workspaceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .assumptions {
+    grid-row: auto;
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 720px) {
+  .appShell {
+    padding: 18px;
+  }
+
+  .topBar,
+  .scenarioList article {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .identity,
+  .metricsGrid,
+  .workspaceGrid,
+  .formGrid,
+  .valuationTable,
+  .comparisonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .assumptions {
+    grid-column: auto;
+  }
+
+  .barRow {
+    grid-template-columns: 30px minmax(76px, 1fr);
+  }
+
+  .barRow strong {
+    grid-column: 2;
+    text-align: left;
+  }
+}
