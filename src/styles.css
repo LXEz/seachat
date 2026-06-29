@@ -23,6 +23,10 @@ input {
   font: inherit;
 }
 
+button {
+  cursor: pointer;
+}
+
 .appShell {
   width: min(1440px, 100%);
   margin: 0 auto;
@@ -74,6 +78,181 @@ input {
   height: 42px;
   padding: 0 12px;
   font-weight: 800;
+}
+
+.marketTools {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 44px;
+  gap: 10px;
+  align-items: start;
+}
+
+.searchBox {
+  position: relative;
+  z-index: 3;
+}
+
+.searchBox label {
+  height: 44px;
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid #cbd0c7;
+  border-radius: 6px;
+  background: #fffefa;
+  color: #66705f;
+}
+
+.searchBox input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #18202a;
+  font-weight: 800;
+}
+
+.searchResults {
+  position: absolute;
+  top: 50px;
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #cbd0c7;
+  border-radius: 8px;
+  background: #fffefa;
+  box-shadow: 0 16px 34px rgba(24, 32, 42, 0.14);
+}
+
+.searchResults button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #18202a;
+  text-align: left;
+}
+
+.searchResults button:hover {
+  background: #eef2ea;
+}
+
+.searchResults span {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.searchResults small,
+.searchResults b {
+  color: #6c7568;
+  font-size: 0.78rem;
+}
+
+.searchResults p {
+  margin: 8px 10px;
+  color: #6c7568;
+  font-size: 0.86rem;
+}
+
+.refreshButton {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #cbd0c7;
+  border-radius: 6px;
+  background: #fffefa;
+  color: #26313a;
+}
+
+.refreshButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.quotePanel {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(190px, auto) minmax(360px, 1.2fr);
+  gap: 16px;
+  align-items: center;
+  margin: 24px 0 0;
+  padding: 18px;
+  border: 1px solid #d6dbd0;
+  border-radius: 8px;
+  background: #fffefa;
+}
+
+.quotePanel h2 {
+  margin: 4px 0 0;
+  font-size: 1.6rem;
+  letter-spacing: 0;
+}
+
+.quotePanel h2 small {
+  margin-left: 10px;
+  color: #727b6e;
+  font-size: 0.95rem;
+}
+
+.quotePanel span,
+.statusText {
+  color: #697266;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.quotePrice {
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+}
+
+.quotePrice strong {
+  font-size: clamp(1.8rem, 3vw, 3rem);
+  letter-spacing: 0;
+}
+
+.quotePrice b.positive,
+.positive {
+  color: #13795b;
+}
+
+.quotePrice b.negative,
+.negative {
+  color: #b42318;
+}
+
+.quoteStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.quoteStats span {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: #f5f4ed;
+}
+
+.statusText {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #b42318;
 }
 
 .metricsGrid {
@@ -154,6 +333,17 @@ input {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.liveNotice {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #eef2ea;
+  color: #5f685b;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
 .field {
@@ -294,6 +484,14 @@ input {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .quotePanel {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .quoteStats {
+    grid-column: 1 / -1;
+  }
+
   .assumptions {
     grid-row: auto;
     grid-column: span 2;
@@ -311,13 +509,20 @@ input {
     flex-direction: column;
   }
 
+  .marketTools,
   .identity,
+  .quotePanel,
+  .quoteStats,
   .metricsGrid,
   .workspaceGrid,
   .formGrid,
   .valuationTable,
   .comparisonGrid {
     grid-template-columns: 1fr;
+  }
+
+  .quotePrice {
+    justify-items: start;
   }
 
   .assumptions {
