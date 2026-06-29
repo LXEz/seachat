@@ -10,7 +10,6 @@ import {
   RefreshCw,
   Search,
   Scale,
-  Target,
   TrendingUp
 } from "lucide-react";
 import "./styles.css";
@@ -46,37 +45,6 @@ const securityFilters = [
   { id: "index", label: "指数" },
   { id: "sector", label: "行业" }
 ];
-
-const commonIndexes = [
-  { code: "000001", name: "上证指数", quoteId: "1.000001", type: "Index", market: "指数" },
-  { code: "399001", name: "深证成指", quoteId: "0.399001", type: "Index", market: "指数" },
-  { code: "399006", name: "创业板指", quoteId: "0.399006", type: "Index", market: "指数" },
-  { code: "000300", name: "沪深300", quoteId: "1.000300", type: "Index", market: "指数" },
-  { code: "000905", name: "中证500", quoteId: "1.000905", type: "Index", market: "指数" },
-  { code: "000852", name: "中证1000", quoteId: "1.000852", type: "Index", market: "指数" }
-];
-
-const commonStocks = [
-  { code: "600519", name: "贵州茅台", quoteId: "1.600519", type: "AStock", market: "沪A" },
-  { code: "000858", name: "五粮液", quoteId: "0.000858", type: "AStock", market: "深A" },
-  { code: "601318", name: "中国平安", quoteId: "1.601318", type: "AStock", market: "沪A" },
-  { code: "600036", name: "招商银行", quoteId: "1.600036", type: "AStock", market: "沪A" },
-  { code: "300750", name: "宁德时代", quoteId: "0.300750", type: "AStock", market: "深A" },
-  { code: "002594", name: "比亚迪", quoteId: "0.002594", type: "AStock", market: "深A" },
-  { code: "600276", name: "恒瑞医药", quoteId: "1.600276", type: "AStock", market: "沪A" },
-  { code: "601899", name: "紫金矿业", quoteId: "1.601899", type: "AStock", market: "沪A" }
-];
-
-const commonSectors = [
-  { code: "BK0896", name: "白酒", quoteId: "90.BK0896", type: "BK", market: "行业" },
-  { code: "BK0475", name: "银行", quoteId: "90.BK0475", type: "BK", market: "行业" },
-  { code: "BK0473", name: "证券", quoteId: "90.BK0473", type: "BK", market: "行业" },
-  { code: "BK1036", name: "半导体", quoteId: "90.BK1036", type: "BK", market: "行业" },
-  { code: "BK0427", name: "医药商业", quoteId: "90.BK0427", type: "BK", market: "行业" },
-  { code: "BK0437", name: "房地产开发", quoteId: "90.BK0437", type: "BK", market: "行业" }
-];
-
-const defaultSecurities = [...commonStocks, ...commonIndexes, ...commonSectors];
 
 const academySections = [
   {
@@ -274,123 +242,66 @@ function getSecurityCategory(item) {
   return "stock";
 }
 
-function SecuritySearch({ onSelect }) {
-  const [query, setQuery] = useState("贵州茅台");
-  const [items, setItems] = useState(defaultSecurities);
-  const [status, setStatus] = useState("idle");
+function AssetPicker({ open, selected, onClose, onSelect }) {
   const [filter, setFilter] = useState("all");
-  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [items, setItems] = useState([]);
+  const [status, setStatus] = useState("idle");
 
   useEffect(() => {
-    const keyword = query.trim();
-    if (keyword.length < 2) {
-      setItems(defaultSecurities);
-      setStatus("idle");
+    if (!open) {
       return;
     }
 
     const controller = new AbortController();
+    const keyword = query.trim();
     setStatus("loading");
 
-    const timer = setTimeout(() => {
-      fetch(`/api/search?q=${encodeURIComponent(keyword)}`, {
-        signal: controller.signal
+    const endpoint =
+      keyword.length >= 2
+        ? `/api/search?q=${encodeURIComponent(keyword)}`
+        : `/api/list?category=${filter === "all" ? "stock" : filter}&size=50`;
+
+    fetch(endpoint, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("list failed");
+        }
+        return response.json();
       })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("search failed");
-          }
-          return response.json();
-        })
-        .then((payload) => {
-          setItems(payload.items || []);
-          setStatus("ready");
-        })
-        .catch((error) => {
-          if (error.name !== "AbortError") {
-            setStatus("error");
-          }
-        });
-    }, 240);
+      .then((payload) => {
+        const nextItems = payload.items || [];
+        setItems(
+          nextItems.filter(
+            (item) => filter === "all" || getSecurityCategory(item) === filter
+          )
+        );
+        setStatus("ready");
+      })
+      .catch((error) => {
+        if (error.name !== "AbortError") {
+          setStatus("error");
+        }
+      });
 
-    return () => {
-      controller.abort();
-      clearTimeout(timer);
-    };
-  }, [query]);
+    return () => controller.abort();
+  }, [open, filter, query]);
 
-  const filteredItems = items.filter(
-    (item) => filter === "all" || getSecurityCategory(item) === filter
-  );
-  const visibleItems = filteredItems.slice(0, 16);
+  if (!open) {
+    return null;
+  }
 
   return (
-    <div className="searchBox">
-      <div className="filterTabs">
-        {securityFilters.map((item) => (
-          <button
-            key={item.id}
-            className={filter === item.id ? "active" : ""}
-            type="button"
-            onClick={() => setFilter(item.id)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-      <label>
-        <Search size={18} />
-        <input
-          placeholder="选择或搜索标的"
-          value={query}
-          onFocus={() => setOpen(true)}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </label>
-      {open && (
-        <div className="searchResults">
-          {status === "loading" && query.trim().length >= 2 && <p>搜索中</p>}
-          {status === "error" && <p>搜索失败</p>}
-          {visibleItems.map((item) => (
-              <button
-                key={item.quoteId}
-                type="button"
-                onClick={() => {
-                  onSelect(item);
-                  setQuery(`${item.name} ${item.code}`);
-                  setOpen(false);
-                }}
-              >
-                <span>
-                  {item.name}
-                  <small>{item.code}</small>
-                </span>
-                <b>{item.market}</b>
-              </button>
-            ))}
-          {visibleItems.length === 0 && <p>没有匹配结果</p>}
+    <div className="pickerOverlay" role="presentation" onClick={onClose}>
+      <section className="assetRail pickerSheet" role="dialog" aria-modal="true" onClick={(event) => event.stopPropagation()}>
+      <div className="pickerHandle" />
+      <div className="pickerTitle">
+        <div>
+          <span>选择标的</span>
+          <strong>{selected.name}</strong>
         </div>
-      )}
-    </div>
-  );
-}
-
-function AssetRail({ onSelect }) {
-  const [filter, setFilter] = useState("all");
-  const [query, setQuery] = useState("");
-
-  const items = defaultSecurities.filter((item) => {
-    const categoryMatch = filter === "all" || getSecurityCategory(item) === filter;
-    const keyword = query.trim().toLowerCase();
-    const queryMatch =
-      !keyword ||
-      item.name.toLowerCase().includes(keyword) ||
-      item.code.toLowerCase().includes(keyword);
-    return categoryMatch && queryMatch;
-  });
-
-  return (
-    <section className="assetRail">
+        <button type="button" onClick={onClose}>关闭</button>
+      </div>
       <div className="assetSearch">
         <Search size={18} />
         <input
@@ -412,8 +323,17 @@ function AssetRail({ onSelect }) {
         ))}
       </div>
       <div className="assetList">
+        {status === "loading" && <p className="listStatus">加载真实行情列表</p>}
+        {status === "error" && <p className="listStatus">列表加载失败</p>}
         {items.map((item) => (
-          <button key={item.quoteId} type="button" onClick={() => onSelect(item)}>
+          <button
+            key={item.quoteId}
+            type="button"
+            onClick={() => {
+              onSelect(item);
+              onClose();
+            }}
+          >
             <span>
               <strong>{item.name}</strong>
               <small>{item.code}</small>
@@ -421,26 +341,10 @@ function AssetRail({ onSelect }) {
             <b>{item.market}</b>
           </button>
         ))}
+        {status === "ready" && items.length === 0 && <p className="listStatus">没有匹配结果</p>}
       </div>
-    </section>
-  );
-}
-
-function QuickPick({ title, items, onSelect }) {
-  return (
-    <section className="quickPick">
-      <div className="quickPickHeader">
-        <span>{title}</span>
-      </div>
-      <div className="quickPickList">
-        {items.map((item) => (
-          <button key={item.quoteId} type="button" onClick={() => onSelect(item)}>
-            <strong>{item.name}</strong>
-            <small>{item.code}</small>
-          </button>
-        ))}
-      </div>
-    </section>
+      </section>
+    </div>
   );
 }
 
@@ -499,7 +403,6 @@ function ValuationBand({ bands, price }) {
 function AppNav({ activePage, onChange }) {
   const items = [
     { id: "analysis", label: "估值", icon: Calculator },
-    { id: "markets", label: "标的", icon: Target },
     { id: "academy", label: "学堂", icon: BookOpen }
   ];
 
@@ -525,6 +428,7 @@ function AppNav({ activePage, onChange }) {
 
 function App() {
   const [activePage, setActivePage] = useState("analysis");
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [inputs, setInputs] = useState(initialInputs);
   const [selectedSecurity, setSelectedSecurity] = useState({
     code: "600519",
@@ -633,6 +537,12 @@ function App() {
       </header>
 
       <AppNav activePage={activePage} onChange={setActivePage} />
+      <AssetPicker
+        open={pickerOpen}
+        selected={selectedSecurity}
+        onClose={() => setPickerOpen(false)}
+        onSelect={handleSelectSecurity}
+      />
 
       {activePage === "analysis" && (
         <section className="pageStack">
@@ -644,6 +554,9 @@ function App() {
                   <small>{inputs.ticker}</small>
                 </h2>
               </div>
+              <button className="selectAssetButton" type="button" onClick={() => setPickerOpen(true)}>
+                选择标的
+              </button>
               <div className="quotePrice">
                 <strong>{yuan.format(inputs.price)}</strong>
                 <b className={quoteTone}>{formatPercent(quote?.changePercent)}</b>
@@ -917,22 +830,6 @@ function App() {
           </div>
         </section>
       </div>
-        </section>
-      )}
-
-      {activePage === "markets" && (
-        <section className="pageStack">
-          <div className="mobileHero">
-            <span>Market Universe</span>
-            <h2>选择要分析的标的</h2>
-            <p>先选股票、指数或行业，再进入估值页查看行情和估值区间。</p>
-          </div>
-          <AssetRail onSelect={handleSelectSecurity} />
-          <div className="marketCollections">
-            <QuickPick title="热门股票" items={commonStocks} onSelect={handleSelectSecurity} />
-            <QuickPick title="宽基指数" items={commonIndexes} onSelect={handleSelectSecurity} />
-            <QuickPick title="行业板块" items={commonSectors} onSelect={handleSelectSecurity} />
-          </div>
         </section>
       )}
 

@@ -166,6 +166,17 @@ button {
   overflow: hidden;
 }
 
+.selectAssetButton {
+  width: fit-content;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.13);
+  color: #ffffff;
+  font-weight: 900;
+}
+
 .quotePanel span,
 .statusText {
   color: rgba(255, 255, 255, 0.68);
@@ -525,6 +536,63 @@ button {
   padding: 16px;
 }
 
+.pickerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  align-items: end;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(10px);
+}
+
+.pickerSheet {
+  width: min(760px, 100%);
+  max-height: min(82vh, 760px);
+  margin: 0 auto;
+  overflow: auto;
+  border-radius: 28px;
+}
+
+.pickerHandle {
+  width: 42px;
+  height: 5px;
+  margin: 0 auto 4px;
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.pickerTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pickerTitle span {
+  color: #64748b;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.pickerTitle strong {
+  display: block;
+  margin-top: 2px;
+  color: #0f172a;
+  font-size: 1.18rem;
+}
+
+.pickerTitle button {
+  min-height: 38px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #334155;
+  font-weight: 900;
+}
+
 .assetSearch {
   height: 48px;
   display: grid;
@@ -574,6 +642,14 @@ button {
 .assetList {
   display: grid;
   gap: 8px;
+}
+
+.listStatus {
+  margin: 0;
+  padding: 18px 8px;
+  color: #64748b;
+  text-align: center;
+  font-weight: 800;
 }
 
 .assetList button {
