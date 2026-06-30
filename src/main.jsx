@@ -14,6 +14,7 @@ import {
   RefreshCw,
   Search,
   Scale,
+  ShieldCheck,
   TrendingUp
 } from "lucide-react";
 import "./styles.css";
@@ -212,6 +213,14 @@ function formatPercent(value) {
   return Number.isFinite(value) && value !== null ? `${number.format(value)}%` : "-";
 }
 
+function Mark({ size = "sm" }) {
+  return (
+    <span className={`brandMark ${size}`} aria-hidden="true">
+      <span>￥</span>
+    </span>
+  );
+}
+
 function Field({ label, name, value, suffix, onChange, step = "1" }) {
   return (
     <label className="field">
@@ -309,7 +318,7 @@ function AssetPicker({ open, selected, onClose, onSelect }) {
       <div className="pickerHandle" />
       <div className="pickerTitle">
         <div>
-          <span>选择标的</span>
+          <span>[search]</span>
           <strong>{selected.name}</strong>
         </div>
         <button type="button" onClick={onClose}>关闭</button>
@@ -318,7 +327,7 @@ function AssetPicker({ open, selected, onClose, onSelect }) {
         <Search size={18} />
         <input
           value={query}
-          placeholder="筛选标的名称或代码"
+          placeholder="输入名称、代码或拼音片段"
           onChange={(event) => setQuery(event.target.value)}
         />
       </div>
@@ -335,8 +344,8 @@ function AssetPicker({ open, selected, onClose, onSelect }) {
         ))}
       </div>
       <div className="assetList">
-        {status === "loading" && <p className="listStatus">加载真实行情列表</p>}
-        {status === "error" && <p className="listStatus">列表加载失败</p>}
+        {status === "loading" && <p className="listStatus">正在检索市场列表</p>}
+        {status === "error" && <p className="listStatus">列表加载失败，稍后再试</p>}
         {items.map((item) => (
           <button
             key={item.quoteId}
@@ -353,7 +362,7 @@ function AssetPicker({ open, selected, onClose, onSelect }) {
             <b>{item.market}</b>
           </button>
         ))}
-        {status === "ready" && items.length === 0 && <p className="listStatus">没有匹配结果</p>}
+        {status === "ready" && items.length === 0 && <p className="listStatus">没有匹配结果，换一个关键词</p>}
       </div>
       </section>
     </div>
@@ -405,8 +414,7 @@ function ValuationBand({ bands, price }) {
         <span>高估线 {yuan.format(bands.highValue)}</span>
       </div>
       <p>
-        当前价格 {yuan.format(price)}。区间由 DCF 内在价值和倍数估值混合得到，
-        再按安全边际切出低估线。
+        当前价格 {yuan.format(price)}。区间由 DCF 与倍数估值混合得到，再按安全边际切出观察线。
       </p>
     </section>
   );
@@ -469,8 +477,8 @@ function MarketValuationChart({ selectedSecurity, quote }) {
       tooltip: {
         trigger: "axis",
         borderWidth: 0,
-        backgroundColor: "rgba(15, 23, 42, 0.92)",
-        textStyle: { color: "#fff" },
+        backgroundColor: "rgba(16, 13, 13, 0.96)",
+        textStyle: { color: "#f4efea" },
         valueFormatter: (value) => Number(value).toFixed(2)
       },
       xAxis: {
@@ -479,22 +487,22 @@ function MarketValuationChart({ selectedSecurity, quote }) {
         boundaryGap: false,
         axisLine: { show: false },
         axisTick: { show: false },
-        axisLabel: { color: "#94a3b8", hideOverlap: true }
+        axisLabel: { color: "#7e7772", hideOverlap: true }
       },
       yAxis: {
         type: "value",
         min: Math.max(0, Math.floor(history.min * 0.9)),
         max: Math.ceil(history.max * 1.08),
-        splitLine: { lineStyle: { color: "#e2e8f0" } },
-        axisLabel: { color: "#94a3b8" }
+        splitLine: { lineStyle: { color: "#2a2525" } },
+        axisLabel: { color: "#7e7772" }
       },
       visualMap: {
         show: false,
         dimension: 1,
         pieces: [
-          { lte: history.lowLine, color: "#16a34a" },
-          { gt: history.lowLine, lte: history.highLine, color: "#f59e0b" },
-          { gt: history.highLine, color: "#ef4444" }
+          { lte: history.lowLine, color: "#7ddf9b" },
+          { gt: history.lowLine, lte: history.highLine, color: "#d7c58d" },
+          { gt: history.highLine, color: "#ef8d83" }
         ]
       },
       series: [
@@ -510,15 +518,15 @@ function MarketValuationChart({ selectedSecurity, quote }) {
             itemStyle: { opacity: 0.14 },
             data: [
               [
-                { yAxis: history.min, itemStyle: { color: "#22c55e" } },
+                { yAxis: history.min, itemStyle: { color: "#7ddf9b" } },
                 { yAxis: history.lowLine }
               ],
               [
-                { yAxis: history.lowLine, itemStyle: { color: "#facc15" } },
+                { yAxis: history.lowLine, itemStyle: { color: "#d7c58d" } },
                 { yAxis: history.highLine }
               ],
               [
-                { yAxis: history.highLine, itemStyle: { color: "#ef4444" } },
+                { yAxis: history.highLine, itemStyle: { color: "#ef8d83" } },
                 { yAxis: history.max }
               ]
             ]
@@ -539,7 +547,7 @@ function MarketValuationChart({ selectedSecurity, quote }) {
       <div className="panelHeader">
         <div>
           <h2>市场估值</h2>
-          <span>历史分位来自东方财富历史估值数据</span>
+          <span>[history] 东方财富历史估值数据</span>
         </div>
         <LineChart size={18} />
       </div>
@@ -693,18 +701,23 @@ function App() {
   return (
     <main className="appShell appFrame">
       <header className="appHeader">
-        <div>
-          <p>Seachat Valuation</p>
-          <h1>投资估值</h1>
-        </div>
+        <a className="brandLockup" href="/" aria-label="SeaChat home">
+          <Mark />
+          <span>SeaChat</span>
+        </a>
+        <nav className="topLinks" aria-label="Primary">
+          <button type="button" onClick={() => setActivePage("analysis")}>Workspace</button>
+          <button type="button" onClick={() => setActivePage("academy")}>Academy</button>
+        </nav>
         <button
-          className="refreshButton"
+          className="primaryButton refreshButton"
           type="button"
           onClick={() => loadQuote()}
           disabled={quoteStatus === "loading"}
           title="刷新行情"
         >
           <RefreshCw size={18} />
+          <span>Refresh</span>
         </button>
       </header>
 
@@ -718,15 +731,40 @@ function App() {
 
       {activePage === "analysis" && (
         <section className="pageStack">
+            <section className="heroPanel">
+              <div className="heroCopy">
+                <p>[valuation terminal]</p>
+                <h1>把估值假设压成可验证的区间。</h1>
+                <span>搜索资产、校准现金流、比较情景。所有关键输入都留在屏幕上，不靠黑箱结论。</span>
+                <div className="heroActions">
+                  <button className="primaryButton" type="button" onClick={() => setPickerOpen(true)}>
+                    <Search size={17} />
+                    搜索标的
+                  </button>
+                  <button className="ghostButton" type="button" onClick={() => setActivePage("academy")}>
+                    <ShieldCheck size={17} />
+                    模型边界
+                  </button>
+                </div>
+                <ul className="heroFacts">
+                  <li><span>[+]</span> 本地草稿优先</li>
+                  <li><span>[+]</span> 移动端 first</li>
+                  <li><span>[+]</span> 不给交易建议</li>
+                </ul>
+              </div>
+              <button className="heroMark" type="button" onClick={() => setPickerOpen(true)} aria-label="打开资产搜索">
+                <Mark size="lg" />
+              </button>
+            </section>
             <section className="quotePanel">
               <div>
-                <span>{selectedSecurity.market || selectedSecurity.type}</span>
+                <span>[asset] {selectedSecurity.market || selectedSecurity.type}</span>
                 <h2>
                   {inputs.company}
                   <small>{inputs.ticker}</small>
                 </h2>
               </div>
-              <button className="selectAssetButton" type="button" onClick={() => setPickerOpen(true)}>
+              <button className="selectAssetButton ghostButton" type="button" onClick={() => setPickerOpen(true)}>
                 选择标的
               </button>
               <div className="quotePrice">
@@ -779,7 +817,7 @@ function App() {
             <Percent size={18} />
           </div>
           <div className="liveNotice">
-            行情来自东方财富，价格和股本会自动更新；财务预测仍需手动输入。
+            [live] 行情来自东方财富，价格和股本会自动更新；财务预测仍需手动输入。
           </div>
           <div className="formGrid">
             <Field
@@ -1009,7 +1047,7 @@ function App() {
       {activePage === "academy" && (
         <section className="pageStack">
           <div className="mobileHero">
-            <span>Valuation Academy</span>
+            <span>[valuation academy]</span>
             <h2>从模型到判断</h2>
             <p>用短课程理解 DCF、相对估值、安全边际和行情数据边界。</p>
           </div>
