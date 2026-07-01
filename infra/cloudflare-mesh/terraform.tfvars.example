@@ -1,0 +1,36 @@
+# Copy to terraform.tfvars and fill in real values.
+# Do not commit terraform.tfvars.
+
+cloudflare_account_id = "13f20cec526e8dc571fa05993ec667be"
+team_name             = "your-team-name"
+
+# Choose at least one enrollment allow rule.
+allowed_email_domain = "@example.com"
+allowed_emails       = []
+
+# Optional: restrict enrollment to specific IdP IDs.
+allowed_idp_ids              = []
+auto_redirect_to_identity    = false
+
+# This Linux workspace machine will register as this Mesh node.
+mesh_node_name = "workspace-linux"
+
+# Empty means Mac/Android can reach this machine by Mesh IP only.
+# Add LAN routes only if this machine should gateway traffic to a subnet behind it.
+advertised_routes = [
+  # {
+  #   network = "192.168.1.0/24"
+  #   comment = "Home LAN behind workspace-linux"
+  # }
+]
+
+# Keep false for the first apply if you already have WARP settings.
+# Turn true only after reviewing the default profile impact.
+manage_default_device_profile = false
+
+device_profile_include_routes = [
+  {
+    address     = "100.96.0.0/12"
+    description = "Cloudflare Mesh IP range"
+  }
+]
